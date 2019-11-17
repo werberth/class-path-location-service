@@ -25,6 +25,6 @@ class ActivityAnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActivityAnswer
         fields = (
-            'id', 'google_drive_file_key',
+            'id', 'file', 'type',
             'activity', 'student',
         )

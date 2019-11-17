@@ -110,8 +110,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-STATIC_URL = '/static/'
-
 AUTH_USER_MODEL = 'accounts.User'
 
 AUTHENTICATION_BACKENDS = (
@@ -127,3 +125,16 @@ REST_FRAMEWORK = {
     ]
 }
 
+#storage settings
+DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
+# dropbox settings
+DROPBOX_TIMEOUT = 200
+DROPBOX_ROOT_PATH = '/class_path_files'
+DROPBOX_OAUTH2_TOKEN = config('DROPBOX_API_ACCESS_TOKEN')
+
+# media settings
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
+# statis settings
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static_files/')
