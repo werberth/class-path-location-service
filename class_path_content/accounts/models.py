@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, Permission
 from django.contrib.contenttypes.models import ContentType
+from django.utils.functional import cached_property
 
 from django.db import models
 
@@ -138,6 +139,26 @@ class Teacher(Profile):
         db_table = 'teacher'
         managed = False
 
+    @cached_property
+    def contents(self):
+        return self.courses.all()
+
+    @cached_property
+    def activities(self):
+        from ..content.models import Activity
+
+        queryset = Activity.objects.filter(content__teacher__id=self.id)
+        return queryset
+
+    @cached_property
+    def answers(self):
+        from ..content.models import ActivityAnswer
+
+        queryset = ActivityAnswer.objects.filter(
+            activity__content__teacher__id=self.id
+        )
+        return queryset
+
 
 class Student(Profile):
     user = models.OneToOneField(
@@ -154,6 +175,31 @@ class Student(Profile):
     class Meta:
         db_table = 'student'
         managed = False
+
+    @cached_property
+    def contents(self):
+        from ..content.models import Content
+
+        queryset = Content.objects.filter(courses__class_id=self.class_id)
+        return queryset
+
+    @cached_property
+    def activity(self):
+        from ..content.models import Activity
+
+        queryset = Activity.objects.filter(
+            content__course__class_id=self.class_id
+        )
+        return queryset
+
+    @cached_property
+    def answers(self):
+        from ..content.models import ActivityAnswer
+
+        queryset = ActivityAnswer.objects.filter(
+            activity__content__course__class_id=self.class_id
+        )
+        return queryset
 
 
 class Address(models.Model):
