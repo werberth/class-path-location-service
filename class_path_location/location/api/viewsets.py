@@ -5,12 +5,17 @@ from haversine import haversine, Unit
 
 from ..models import Location
 
-from . import serializers
+from . import serializers, permissions
 
 
 class LocationViewset(viewsets.ModelViewSet):
     serializer_class = serializers.LocationSerializer
-    queryset = Location.objects.all()
+    permission_classes = permissions.OnlyTeachers,
+
+    def get_queryset(self):
+        teacher = self.request.user.teacher
+        queryset = Location.objects.filter(teacher=teacher)
+        return queryset
 
 
 class DistanceView(generics.CreateAPIView):
@@ -19,7 +24,7 @@ class DistanceView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         origin = serializer.data['origin']
         destination = serializer.data['destination']
 
