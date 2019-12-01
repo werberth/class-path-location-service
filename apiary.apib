@@ -1,0 +1,108 @@
+FORMAT: 1A
+HOST: http://class-path-location.herokuapp.com/
+
+# Class Path Location
+
+Os serviços do sistema Class Path se dividem em 3, sendo um para criação e resposta de conteúdos, outro pra trabalhar a geolocalização e distância entre dois pontos, e um terceiro responsável por retornar as informações de usuários e login.
+
+Eles estão hospedados no heroku com os seguintes domínios:
+
+**Class Path Auth**:
+
+`http://class-path-auth.herokuapp.com/`
+
+**Class Path Location**:
+
+`http://class-path-location.herokuapp.com/`
+
+**Class Path Content**:
+
+`http://class-path-content.herokuapp.com/`
+
+Essa documentação trata-se exclusivamente do serviço de usuários, `class-path-auth`.
+
+
+## Professor - Localização [/location/]
+Para criar uma localização, basta enviar as coordenadas e rotulá-la com uma nome. O campo description não é obrigatório.
+
+Ao acessar a url `/locations/` com o método GET, esse endpoint retorna todas as localizações cadastradas pelo professor autenticado.
+**Somente professores podem cadastrar e listar localizações**
+### Criar Location [POST]
+
++ Request (application/json)
+    + Headers
+
+        Authorization Token 19405d402e37d8ca3b93d0bfdc7478e99665261a
+
+    + Body
+
+        {
+            "name": "Federal",
+            "latitude": -2.908933,
+            "longitude": -41.754316,
+        }
+
++ Response 201 (application/json)
+
+    + Body
+
+        {
+            "name": "Federal",
+            "latitude": -2.908933,
+            "longitude": -41.754316,
+            "description": null,
+            "teacher": 1
+        }
+
+### Listar Localizações [GET]
++ Request (application/json)
+    + Headers
+        Authorization Token 19405d402e37d8ca3b93d0bfdc7478e99665261a
+
++ Response 201 (application/json)
+    + Body
+
+        [
+            {
+                "name": "Location I",
+                "latitude": -2.208933,
+                "longitude": -31.754316,
+                "description": null,
+                "teacher": 1
+            },
+            {
+                "name": "Location II",
+                "latitude": -1.908933,
+                "longitude": -43.754316,
+                "description": null,
+                "teacher": 1
+            },
+            {
+                "name": "Location III",
+                "latitude": -2.708933,
+                "longitude": -21.754316,
+                "description": null,
+                "teacher": 1
+            }
+        ]
+
+
+## Distância entre dois pontos [/distance/]
+O endpoint `/distance/` é responsável por retornar a distância entre dois pontos utilizando a formula de Haversine.
+As coordenadas são passadas em lista seguindo o padrão: [*latitude*, *longitude*].
+### Calcular Distância [POST]
++ Request (application/json)
+    + Body
+
+        {
+            "origin": [-2.908933, -41.754316],
+            "destination": [-2.906434, -41.779595],
+            "threshold": 5
+        }
++ Response 200
+   + Body
+      
+       {
+            "threshold": false,
+            "distance": 2821.0007456023004
+        }
