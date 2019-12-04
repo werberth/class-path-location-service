@@ -17,7 +17,8 @@ class ActivitySerializer(serializers.ModelSerializer):
         model = Activity
         fields = (
             'id', 'title', 'description', 'location',
-            'content', 'create_at', 'update_at'
+            'content', 'is_multimidia', 'create_at',
+            'update_at'
         )
 
 
@@ -28,3 +29,10 @@ class ActivityAnswerSerializer(serializers.ModelSerializer):
             'id', 'file', 'type',
             'activity', 'student',
         )
+        extra_kwargs = {'student': {'read_only': True}}
+
+    def create(self, validated_data):
+        validated_data.update({
+            'student': self.context['request'].user.student
+        })
+        return super(ActivityAnswerSerializer, self).create(validated_data)
