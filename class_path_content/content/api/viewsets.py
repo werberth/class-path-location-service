@@ -1,55 +1,97 @@
-from rest_framework import serializers, viewsets, permissions
+from rest_framework import serializers, viewsets, permissions, status
+from rest_framework.response import Response
 
 from ..models import Content, Activity, ActivityAnswer
 
 from . import serializers, permissions as perms
 
 
-class ContentViewSet(viewsets.ModelViewSet):
-    queryset = Content.objects.all()
+class BaseDepthViewSet(viewsets.ModelViewSet):
+    user_actions = ['list', 'retrieve']
+    read_only_serializer_class = None
+
+    def get_teachers(self):
+        class_id = self.request.user.student.class_id
+        teacher_filter = self.request.query_params.get('teacher')
+        teachers = class_id.courses.values_list('teacher', flat=True)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+
+        read_serializer = self.read_only_serializer_class(instance)
+        headers = self.get_success_headers(read_serializer.data)
+        return Response(
+            read_serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers
+        )
+
+    def update(self, request, *args, **kwargs):
+        super().update(request, *args, **kwargs)
+        serializer = self.read_only_serializer_class(self.get_object())
+        return Response(serializer.data)
+
+    def get_serializer_class(self):
+        if self.action in self.user_actions:
+            return self.read_only_serializer_class
+        return self.serializer_class
+
+
+class ContentViewSet(BaseDepthViewSet):
     serializer_class = serializers.ContentSerializer
+    read_only_serializer_class = serializers.ContentSerializerReadOnly
+
     permission_classes = (
         permissions.IsAuthenticated,
         perms.OnlyTeachersCanEditOrStudentsCanRead
     )
-    filterset_fields = ['course']
 
     def get_queryset(self):
         user = self.request.user
         if user.is_student:
-            return user.student.contents
+            teachers = self.get_teachers()
+            queryset = Content.objects.filter(teacher__id__in=teachers)
+
+            if teacher_filter:
+                queryset = queryset.filter(teacher__id=teacher_filter)
+            return queryset
+
         elif user.is_teacher:
-            return user.teacher.contents
+            return user.teacher.contents.all()
 
 
-class ActivityViewSet(viewsets.ModelViewSet):
-    queryset = Activity.objects.all()
+class ActivityViewSet(BaseDepthViewSet):
+    permission_classes = (
+        permissions.IsAuthenticated,
+        perms.OnlyTeachersCanEditOrStudentsCanRead
+    )
     serializer_class = serializers.ActivitySerializer
-    permission_classes = (
-        permissions.IsAuthenticated,
-        perms.OnlyTeachersCanEditOrStudentsCanRead
-    )
-    filterset_fields = ['location', 'content']
+    read_only_serializer_class = serializers.ActivitySerializerReadOnly
 
     def get_queryset(self):
         user = self.request.user
         if user.is_student:
-            return user.student.activities
-        elif user.is_teacher:
-            return user.teacher.activities
+            return user.student.class_id.activities.all()
 
-class ActivityAnswerViewSet(viewsets.ModelViewSet):
-    queryset = ActivityAnswer.objects.all()
+        if user.is_teacher:
+            contents = user.teacher.contents.values_list('id', flat=True)
+            return Activity.objects.filter(content__id__in=contents)
+
+
+class ActivityAnswerViewSet(BaseDepthViewSet):
     serializer_class = serializers.ActivityAnswerSerializer
+    read_only_serializer_class = serializers.ActivityAnswerSerializerReadOnly
     permission_classes = (
         permissions.IsAuthenticated,
         perms.OnlyStudentsCanEditOrTeachersCanRead
     )
-    filterset_fields = ['type', 'activity']
 
     def get_queryset(self):
         user = self.request.user
         if user.is_teacher:
-            return user.teacher.answers
+            contents = user.teacher.contents.values_list('id', flat=True)
+            return ActivityAnswer.objects.filter(activity__content__id=contents)
         elif user.is_student:
-            return user.student.answers
+            return user.student.answers.all()

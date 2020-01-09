@@ -4,26 +4,23 @@ import hashlib
 from time import time
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
-from ..accounts.models import Teacher, Student, Course
+from ..accounts.models import Teacher, Student, Course, Class
 from ..location.models import Location
 
 
 class Content(models.Model):
     title = models.CharField(max_length=250)
-    description = models.CharField(max_length=250)
+    description = models.TextField(_('description'), blank=True, null=True)
     teacher = models.ForeignKey(
         Teacher,
         on_delete=models.CASCADE,
-        related_name="contents"
+        related_name="contents",
+        null=True
     )
-    course = models.ForeignKey(
-        Course,
-        on_delete=models.CASCADE,
-        related_name="contents"
-    )
-    create_at = models.DateTimeField(auto_now_add=True)
-    update_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'content'
@@ -35,7 +32,7 @@ class Content(models.Model):
 
 class Activity(models.Model):
     title = models.CharField(max_length=250)
-    description = models.CharField(max_length=250)
+    description = models.TextField(_('description'), blank=True, null=True)
     location = models.ForeignKey(
         Location,
         on_delete=models.CASCADE,
@@ -46,9 +43,15 @@ class Activity(models.Model):
         on_delete=models.CASCADE,
         related_name="activities"
     )
-    is_multimidia = models.BooleanField(default=False)
-    create_at = models.DateTimeField(auto_now_add=True)
-    update_at = models.DateTimeField(auto_now=True)
+    class_id = models.ForeignKey(
+        Class,
+        on_delete=models.CASCADE,
+        related_name="activities",
+        null=True
+    )
+    multimedia_required = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'activity'
@@ -62,9 +65,9 @@ def upload_file_path(instance, filename):
     now = str(time())
     hash = hashlib.md5(now.encode('utf-8'))
     hash_file_name = hash.hexdigest()
-
+    
     _, ext = os.path.splitext(filename)
-
+    
     return f'{hash_file_name}.{ext}'
 
 
@@ -84,6 +87,8 @@ class ActivityAnswer(models.Model):
         on_delete=models.CASCADE,
         related_name="answers"
     )
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'activity_answer'
