@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from class_path_content.accounts.models import Class
 from ..models import Content, Activity, ActivityAnswer
 
 
@@ -7,7 +8,7 @@ class ContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Content
         fields = (
-            'id', 'title', 'description', 'teacher',
+            'id', 'title', 'description',
             'teacher', 'created_at', 'modified_at'
         )
         extra_kwargs = {'teacher': {'read_only': True}}
@@ -34,17 +35,34 @@ class ActivitySerializer(serializers.ModelSerializer):
         model = Activity
         fields = (
             'id', 'title', 'description', 'location',
-            'content', 'multimedia_required', 'created_at',
+            'content', 'class_id', 'multimedia_required', 'created_at',
             'modified_at'
         )
+        extra_kwargs = {
+            'content':  {'required': True, 'allow_null': False},
+            'class_id': {'required': True, 'allow_null': False},
+            'location': {'required': True, 'allow_null': False},
+        }
+
+    def get_fields(self):
+        fields = super().get_fields()
+        teacher = self.context['request'].user.teacher
+        classes = teacher.courses.values_list('class_id__id', flat=True)
+
+        fields['content'].queryset = teacher.contents.all()
+        fields['class_id'].queryset = Class.objects.filter(id__in=classes)
+        fields['location'].queryset = teacher.locations.all()
+
+        return fields
 
 
 class ActivitySerializerReadOnly(serializers.ModelSerializer):
     class Meta:
+        depth = 2
         model = Activity
         fields = (
             'id', 'title', 'description', 'location',
-            'content', 'multimedia_required', 'created_at',
+            'content', 'class_id', 'multimedia_required', 'created_at',
             'modified_at'
         )
 

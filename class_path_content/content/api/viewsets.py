@@ -12,7 +12,6 @@ class BaseDepthViewSet(viewsets.ModelViewSet):
 
     def get_teachers(self):
         class_id = self.request.user.student.class_id
-        teacher_filter = self.request.query_params.get('teacher')
         teachers = class_id.courses.values_list('teacher', flat=True)
 
     def create(self, request, *args, **kwargs):
@@ -52,6 +51,7 @@ class ContentViewSet(BaseDepthViewSet):
         user = self.request.user
         if user.is_student:
             teachers = self.get_teachers()
+            teacher_filter = self.request.query_params.get('teacher')
             queryset = Content.objects.filter(teacher__id__in=teachers)
 
             if teacher_filter:
@@ -63,12 +63,13 @@ class ContentViewSet(BaseDepthViewSet):
 
 
 class ActivityViewSet(BaseDepthViewSet):
+    serializer_class = serializers.ActivitySerializer
+    read_only_serializer_class = serializers.ActivitySerializerReadOnly
+
     permission_classes = (
         permissions.IsAuthenticated,
         perms.OnlyTeachersCanEditOrStudentsCanRead
     )
-    serializer_class = serializers.ActivitySerializer
-    read_only_serializer_class = serializers.ActivitySerializerReadOnly
 
     def get_queryset(self):
         user = self.request.user
