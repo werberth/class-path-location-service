@@ -43,8 +43,8 @@ class Activity(models.Model):
         on_delete=models.CASCADE,
         related_name="activities"
     )
-    class_id = models.ForeignKey(
-        Class,
+    course = models.ForeignKey(
+        Course,
         on_delete=models.CASCADE,
         related_name="activities",
         null=True

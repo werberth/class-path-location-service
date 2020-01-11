@@ -47,10 +47,9 @@ class ActivitySerializer(serializers.ModelSerializer):
     def get_fields(self):
         fields = super().get_fields()
         teacher = self.context['request'].user.teacher
-        classes = teacher.courses.values_list('class_id__id', flat=True)
 
         fields['content'].queryset = teacher.contents.all()
-        fields['class_id'].queryset = Class.objects.filter(id__in=classes)
+        fields['course'].queryset = teacher.courses.all()
         fields['location'].queryset = teacher.locations.all()
 
         return fields
@@ -62,7 +61,7 @@ class ActivitySerializerReadOnly(serializers.ModelSerializer):
         model = Activity
         fields = (
             'id', 'title', 'description', 'location',
-            'content', 'class_id', 'multimedia_required', 'created_at',
+            'content', 'course', 'multimedia_required', 'created_at',
             'modified_at'
         )
 
