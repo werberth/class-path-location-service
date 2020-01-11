@@ -74,7 +74,8 @@ class ActivityViewSet(BaseDepthViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_student:
-            return user.student.class_id.activities.all()
+            courses = user.student.class_id.courses.values_list('id', flat=True)
+            return Activity.objects.filter(course__id__in=courses)
 
         if user.is_teacher:
             contents = user.teacher.contents.values_list('id', flat=True)
