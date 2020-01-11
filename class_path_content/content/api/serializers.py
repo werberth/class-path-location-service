@@ -35,12 +35,12 @@ class ActivitySerializer(serializers.ModelSerializer):
         model = Activity
         fields = (
             'id', 'title', 'description', 'location',
-            'content', 'class_id', 'multimedia_required', 'created_at',
+            'content', 'course', 'multimedia_required', 'created_at',
             'modified_at'
         )
         extra_kwargs = {
             'content':  {'required': True, 'allow_null': False},
-            'class_id': {'required': True, 'allow_null': False},
+            'course': {'required': True, 'allow_null': False},
             'location': {'required': True, 'allow_null': False},
         }
 
