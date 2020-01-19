@@ -84,7 +84,7 @@ class ActivityAnswerSerializer(serializers.ModelSerializer):
             'id', 'file',
             'activity', 'student',
         )
-        extra_kwargs = {'student': {'read_only': True}, 'file': {'read_only': True}}
+        extra_kwargs = {'student': {'read_only': True}}
 
     def create(self, validated_data):
         validated_data.update({
@@ -94,6 +94,8 @@ class ActivityAnswerSerializer(serializers.ModelSerializer):
  
 
 class ActivityAnswerSerializerReadOnly(serializers.ModelSerializer):
+    file = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         depth = 2
         model = ActivityAnswer
@@ -101,3 +103,7 @@ class ActivityAnswerSerializerReadOnly(serializers.ModelSerializer):
             'id', 'file',
             'activity', 'student',
         )
+
+    def get_file(self, obj):
+        if obj.file:
+            return obj.file.url
