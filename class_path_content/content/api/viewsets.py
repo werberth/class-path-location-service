@@ -104,6 +104,6 @@ class ActivityAnswerViewSet(BaseDepthViewSet):
         user = self.request.user
         if user.is_teacher:
             contents = user.teacher.contents.values_list('id', flat=True)
-            return ActivityAnswer.objects.filter(activity__content__id=contents)
+            return ActivityAnswer.objects.filter(activity__content__id__in=contents)
         elif user.is_student:
             return user.student.answers.all()
