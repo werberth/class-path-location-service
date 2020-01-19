@@ -49,6 +49,12 @@ class Activity(models.Model):
         related_name="activities",
         null=True
     )
+    class_id = models.ForeignKey(
+        Class,
+        on_delete=models.CASCADE,
+        related_name="activities",
+        null=True
+    )
     multimedia_required = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)

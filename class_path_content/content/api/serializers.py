@@ -25,7 +25,7 @@ class ContentSerializerReadOnly(serializers.ModelSerializer):
         depth = 2
         model = Content
         fields = (
-            'id', 'title', 'description', 'teacher',
+            'id', 'title', 'description',
             'teacher', 'created_at', 'modified_at'
         )
 
@@ -35,13 +35,14 @@ class ActivitySerializer(serializers.ModelSerializer):
         model = Activity
         fields = (
             'id', 'title', 'description', 'location',
-            'content', 'course', 'multimedia_required', 'created_at',
+            'content', 'course', 'class_id', 'multimedia_required', 'created_at',
             'modified_at'
         )
         extra_kwargs = {
             'content':  {'required': True, 'allow_null': False},
-            'course': {'required': True, 'allow_null': False},
             'location': {'required': True, 'allow_null': False},
+            'course': {'required': False, 'allow_null': True, 'read_only':True},
+            'class_id': {'required': False, 'allow_null': True, 'read_only':True}
         }
 
     def get_fields(self):
@@ -49,8 +50,18 @@ class ActivitySerializer(serializers.ModelSerializer):
         teacher = self.context['request'].user.teacher
 
         fields['content'].queryset = teacher.contents.all()
-        fields['course'].queryset = teacher.courses.all()
         fields['location'].queryset = teacher.locations.all()
+
+        if not teacher.user.has_institution:
+            fields['class_id'].required = True
+            fields['class_id'].read_only = False
+            fields['class_id'].allow_null = False
+            fields['class_id'].queryset = teacher.classes.all()
+        else:
+            fields['course'].required = True
+            fields['course'].allow_null = False
+            fields['course'].read_only = False
+            fields['course'].queryset = teacher.courses.all()
 
         return fields
 
@@ -61,7 +72,7 @@ class ActivitySerializerReadOnly(serializers.ModelSerializer):
         model = Activity
         fields = (
             'id', 'title', 'description', 'location',
-            'content', 'course', 'multimedia_required', 'created_at',
+            'content', 'course', 'class_id', 'multimedia_required', 'created_at',
             'modified_at'
         )
 

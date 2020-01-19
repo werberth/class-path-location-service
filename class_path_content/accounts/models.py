@@ -17,7 +17,8 @@ class User(AbstractUser):
     email = models.EmailField(_('email address'), unique=True)
     is_teacher = models.BooleanField(_('is teacher'), default=False)
     is_student = models.BooleanField(_('is student'), default=False)
-    is_admin = models.BooleanField(_('is_admin'), default=False)
+    is_admin = models.BooleanField(_('is admin'), default=False)
+    has_institution = models.BooleanField(_('has institution'), default=True)
 
     objects = CustomUserManager()
 
@@ -67,6 +68,26 @@ class Institution(models.Model):
         return self.name
 
 
+class Teacher(Profile):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="teacher"
+    )
+    institution = models.ForeignKey(
+        Institution,
+        on_delete=models.CASCADE,
+        related_name="teachers",
+        null=True,
+    )
+    created_at = models.DateTimeField(_('created at'), auto_now_add=True)
+    modified_at = models.DateTimeField(_('modified at'), auto_now=True)
+
+    class Meta:
+        db_table = 'teacher'
+        managed = False
+
+
 class Program(models.Model):
     name = models.CharField(_('name'), max_length=200)
     description = models.TextField(_('description'), blank=True, null=True)
@@ -92,10 +113,17 @@ class Class(models.Model):
     program = models.ForeignKey(
         Program,
         on_delete=models.CASCADE,
-        related_name="classes"
+        related_name="classes",
+        null=True
     )
-    created_at = models.DateTimeField(_('created_at'), auto_now_add=True)
-    modified_at = models.DateTimeField(_('modified_at'), auto_now=True)
+    teacher = models.ForeignKey(
+        Teacher,
+        on_delete=models.CASCADE,
+        related_name="classes",
+        null=True
+    )
+    created_at = models.DateTimeField(_('created at'), auto_now_add=True)
+    modified_at = models.DateTimeField(_('modified at'), auto_now=True)
 
     class Meta:
         db_table = 'class'
@@ -125,25 +153,6 @@ class Admin(Profile):
         managed = False
 
 
-class Teacher(Profile):
-    user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        related_name="teacher"
-    )
-    institution = models.ForeignKey(
-        Institution,
-        on_delete=models.CASCADE,
-        related_name="teachers"
-    )
-    created_at = models.DateTimeField(_('created at'), auto_now_add=True)
-    modified_at = models.DateTimeField(_('modified at'), auto_now=True)
-
-    class Meta:
-        db_table = 'teacher'
-        managed = False
-
-
 class Student(Profile):
     user = models.OneToOneField(
         User,
@@ -155,7 +164,6 @@ class Student(Profile):
         on_delete=models.CASCADE,
         related_name="students"
     )
-
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     modified_at = models.DateTimeField(_('modified at'), auto_now=True)
 

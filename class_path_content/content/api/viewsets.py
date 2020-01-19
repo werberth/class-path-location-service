@@ -12,8 +12,13 @@ class BaseDepthViewSet(viewsets.ModelViewSet):
 
     def get_teachers(self):
         class_id = self.request.user.student.class_id
-        teachers = class_id.courses.values_list('teacher', flat=True)
-        return teachers
+
+        if self.request.user.has_institution:
+            teachers = class_id.courses.values_list('teacher', flat=True)
+            return teachers
+
+        return [class_id.teacher.id]
+
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -74,6 +79,10 @@ class ActivityViewSet(BaseDepthViewSet):
 
     def get_queryset(self):
         user = self.request.user
+
+        if user.is_student and not user.has_institution:
+            return Activity.objects.filter(class_id=user.student.class_id)
+
         if user.is_student:
             courses = user.student.class_id.courses.values_list('id', flat=True)
             return Activity.objects.filter(course__id__in=courses)
