@@ -101,4 +101,4 @@ class ActivityAnswer(models.Model):
         managed = False
 
     def __str__(self):
-        return f'{self.student.full_name}: {self.google_drive_file_key}'
+        return f'{self.activity.title}: {self.activity.title}'

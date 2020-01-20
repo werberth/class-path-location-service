@@ -134,7 +134,6 @@ REST_FRAMEWORK = {
 #storage settings
 DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
 # dropbox settings
-DROPBOX_TIMEOUT = 200
 DROPBOX_ROOT_PATH = '/class_path_files'
 DROPBOX_OAUTH2_TOKEN = config('DROPBOX_API_ACCESS_TOKEN')
 
